@@ -1,14 +1,13 @@
-import os
+import streamlit as st
 import time
 from crewai import Crew
 from langchain_groq import ChatGroq
 from backend.agents import ProductAnalysisAgents
-from backend.tasks  import Productanalysistask
+from backend.tasks import Productanalysistask
 from dotenv import load_dotenv
 
 # Setup environment
 load_dotenv()
-
 
 def analyze_product(product_name):
     # 1. Create agents
@@ -52,33 +51,59 @@ def analyze_product(product_name):
     )
 
     # Kick off the crew and measure time
-    print(f"\nStarting analysis for {product_name}...")
     start_time = time.time()
     results = crew.kickoff()
     end_time = time.time()
 
     # Print results and metrics
     elapsed_time = end_time - start_time
-    print(f"\nAnalysis completed in {elapsed_time:.2f} seconds.")
-    print("Crew usage metrics:", crew.usage_metrics)
+    usage_metrics = crew.usage_metrics
 
-    return results
+    return results, elapsed_time, usage_metrics
 
+def display_results(results):
+    for i, result in enumerate(results, 1):
+        st.markdown(f"### Report {i}")
+        try:
+            # Assuming the tuple structure is (report_type, report_content)
+            if isinstance(result, tuple) and len(result) > 1:
+                report_type, report_content = result
+                if report_type == 'raw':  # Adjust as per the actual tuple structure
+                    st.markdown(report_content, unsafe_allow_html=True)
+                else:
+                    st.write(f"Type: {report_type}\nContent: {report_content}")
+            else:
+                st.write(result)
+        except Exception as e:
+            st.error(f"Failed to display report {i}: {e}")
+
+def main():
+    st.title("Product Analysis Dashboard")
+
+    # Input section
+    product_name = st.text_input("Enter the product name you want to analyze:", "")
+    if st.button("Analyze Product"):
+        if not product_name:
+            st.error("Please enter a product name before starting the analysis.")
+        else:
+            st.info(f"Starting analysis for '{product_name}'... Please wait.")
+            try:
+                with st.spinner("Analyzing product... This may take a few moments."):
+                    results, elapsed_time, usage_metrics = analyze_product(product_name)
+
+                # Display results
+                st.success(f"Analysis completed in {elapsed_time:.2f} seconds.")
+
+                # Crew Metrics
+                st.subheader("Crew Usage Metrics")
+                st.json(usage_metrics)
+
+                # Analysis Reports
+                st.subheader("Analysis Results")
+                display_results(results)
+
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    # Get product name from user
-    product_name = input("Enter the product name you want to analyze: ")
-
-    # Run the analysis
-    try:
-        results = analyze_product(product_name)
-
-        # Display results
-        print("\n=== Analysis Results ===")
-        for i, result in enumerate(results, 1):
-            print(f"\nReport {i}:")
-            print(result)
-            print("\n" + "=" * 50)
-
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
+    main()
