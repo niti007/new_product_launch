@@ -1,6 +1,6 @@
-crewai
-langchain-groq
-python-dotenv
-crewai-tools
-serper-dev
-langchain
+crewai>=0.86.0
+langchain-groq>=0.2.1
+python-dotenv>=1.0.1
+crewai-tools>=0.17.0
+serper>=1.0.0  
+langchain>=0.1.0  
