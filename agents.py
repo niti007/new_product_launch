@@ -44,6 +44,7 @@ class ProductAnalysisAgents():
                 """,
             verbose=True,
             llm=self.llm,
+            tools=[search_tool],
             max_iter=2,
         )
 
