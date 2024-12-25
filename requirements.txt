@@ -5,3 +5,4 @@ crewai-tools>=0.17.0
 langchain>=0.1.0  
 streamlit
 chromadb[huggingface]
+pysqlite3-binary
